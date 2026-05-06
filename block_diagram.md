@@ -5,11 +5,11 @@ This diagram illustrates the multi-agent architecture and the flow of structured
 ```mermaid
 flowchart TD
     %% Styling Definitions
-    classDef user node    fill:#f9f,stroke:#333,stroke-width:2px,color:#000
-    classDef agent node   fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
-    classDef engine node  fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    classDef safety node  fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef output node  fill:#f3e5f5,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef user fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    classDef agent fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef engine fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef safety fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef output fill:#f3e5f5,stroke:#388e3c,stroke-width:2px,color:#000
 
     %% User Input
     User(["👤 User"]):::user
@@ -42,7 +42,7 @@ flowchart TD
     Planner -->|3. Hero's Journey Arc| PlanReviewer
     
     %% Edges - Review Loop
-    PlanReviewer -.->|Rejected Plan<br/>(Retry)| Planner
+    PlanReviewer -.->|Rejected Plan Retry| Planner
     PlanReviewer -->|4. Approved Plan| Director
 
     %% Edges - Execution Loop
@@ -53,8 +53,8 @@ flowchart TD
     CharacterAgents -->|6. Dialogue/Action| Judge
 
     %% Edges - Judge Loop
-    Judge -.->|Rejected Content<br/>(Retry)| Storyteller
-    Judge -.->|Rejected Content<br/>(Retry)| CharacterAgents
+    Judge -.->|Rejected Content Retry| Storyteller
+    Judge -.->|Rejected Content Retry| CharacterAgents
     
     %% Edges - Output & Feedback
     Judge -->|7. Approved Content| FinalStory
