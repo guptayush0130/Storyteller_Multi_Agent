@@ -8,7 +8,6 @@ flowchart TD
     classDef process fill:#eef3f8,stroke:#2f5d8a,stroke-width:1.2px,color:#111
     classDef control fill:#f8f3e8,stroke:#8a6d2f,stroke-width:1.2px,color:#111
     classDef output fill:#edf7ed,stroke:#2f7a3d,stroke-width:1.2px,color:#111
-    classDef note fill:#ffffff,stroke:#777,stroke-width:1px,color:#333
 
     User[User Input\nStory request and live feedback]:::user
 
@@ -23,7 +22,7 @@ flowchart TD
         Storyteller[Storyteller Agent\nGenerates narration and next-actor cue\nOutput model: StorytellerOutput]:::process
         Characters[Character Agents\nGenerate in-character actions and dialogue\nInput: character persona and scene context]:::process
         Judge[Judge Agent\nApproves, corrects, or rejects generated content\nOutput model: Judgment]:::control
-        LoopNote[Loop continues until SceneComplete\nor safety turn limit is reached]:::note
+        SceneLoop[Loop condition\nRepeat Phase 2 until all scenes are complete]:::control
     end
 
     subgraph P3[Phase 3: Feedback Handling]
@@ -41,8 +40,8 @@ flowchart TD
     Director -->|5. Select next actor| Characters
     Storyteller -->|6. Narrative block| Judge
     Characters -->|6. Character block| Judge
-    Judge -.->|If scene not complete| Director
-    Director -.-> LoopNote
+    Judge -->|Continue current or next scene| SceneLoop
+    SceneLoop -->|Scenes remaining| Director
     Judge -->|7. Approved content| Output
 
     Output -->|8. Display content| User
