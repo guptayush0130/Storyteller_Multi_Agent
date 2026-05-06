@@ -1,6 +1,6 @@
-# Hippocratic AI Demo — Multi‑Agent Bedtime Storyteller
+# Hippocratic AI Demo: Multi-Agent Bedtime Storytelling System
 
-An interactive bedtime-story generator (ages 5–10) built with a **multi-agent orchestration** pattern:
+This project is an interactive bedtime story generation system for ages 5-10, implemented with a multi-agent orchestration pattern:
 - A **Planner** builds a structured story arc (scenes + goals).
 - A **Storyteller** narrates and cues character turns.
 - **Character agents** contribute in-role actions/dialogue.
@@ -8,9 +8,9 @@ An interactive bedtime-story generator (ages 5–10) built with a **multi-agent 
 - A **Director (ActionDecider)** chooses who speaks next.
 - A **FeedbackClassifier** routes user feedback into either small adjustments or full replanning.
 
-You can run it as:
-- **Streamlit app** (`app.py`) for interactive UI.
-- **CLI** (`main.py`) for terminal-based interaction.
+The project supports two interfaces:
+- **Streamlit application** (`app.py`) for web-based interaction.
+- **CLI application** (`main.py`) for terminal-based interaction.
 
 ## How to run
 
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 export OPENAI_API_KEY='your-api-key-here'
 ```
 
-Optional safety limits (prevents infinite looping if a scene never ends “naturally”):
+Optional safety limits (prevents infinite looping if a scene does not terminate naturally):
 
 ```bash
 export MAX_MESSAGES_PER_SCENE=30
@@ -50,23 +50,23 @@ python main.py
 
 ### High-level phases
 
-- **Phase 1 — Extraction**
+- **Phase 1 - Extraction**
   - Input: user story request
-  - Output: structured “story elements” (theme + character specs)
+  - Output: structured story elements (theme + character specifications)
 
-- **Phase 2 — Planning + Review**
+- **Phase 2 - Planning and review**
   - The Planner generates a multi-scene story arc (scene titles, descriptions, involved characters, and explicit goals).
   - A Reviewer acts as a gatekeeper: if the plan isn’t acceptable, the Planner retries (up to a fixed retry count).
 
-- **Phase 3 — Execution (per-scene interactive loop)**
+- **Phase 3 - Execution (per-scene loop)**
   - The story runs scene-by-scene.
-  - Within a scene, the Director repeatedly decides which agent acts next:
+  - Within each scene, the Director repeatedly selects which agent acts next:
     - **Storyteller** narrates and can provide an internal cue for the next actor.
-    - **A specific Character agent** responds in-character.
+    - **Character agent** responds in-character.
   - Every generated block is sent through the **Judge**, which can approve, correct, or reject and request retries.
   - The loop ends when the Director chooses `SceneComplete` (or when the safety limit forces an end).
 
-- **Phase 4 — Live feedback**
+- **Phase 4 - Live feedback**
   - User feedback is classified:
     - **Scene adjustment**: appended into history as an instruction to influence future turns.
     - **Plan change**: triggers replanning from the current scene onward while preserving history/context.
@@ -83,7 +83,7 @@ python main.py
   - Validates the proposed plan for appropriateness and coherence; rejects plans that need revision.
 
 - **StorytellerAgent**
-  - Produces the main narration (“narrative block”) and (optionally) a private cue for the next actor.
+  - Produces the main narration (`narrative_block`) and, optionally, a private cue for the next actor.
 
 - **CharacterAgent(s)**
   - One agent per extracted character; generates in-character contributions consistent with the scene and recent history.

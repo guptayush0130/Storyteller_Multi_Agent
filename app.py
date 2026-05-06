@@ -15,7 +15,7 @@ MAX_JUDGE_RETRY = 3
 MAX_MESSAGES_PER_SCENE = int(os.environ.get("MAX_MESSAGES_PER_SCENE", "10"))
 MAX_MESSAGES_TOTAL = int(os.environ.get("MAX_MESSAGES_TOTAL", "300"))
 
-st.set_page_config(page_title="Bedtime Storyteller", page_icon="📚", layout="wide")
+st.set_page_config(page_title="Bedtime Storyteller", page_icon="book", layout="wide")
 
 class StoryState:
     def __init__(self):
@@ -197,7 +197,7 @@ def handle_feedback(user_feedback):
 
 # --- Streamlit UI ---
 
-st.title("📚 Interactive Bedtime Storyteller")
+st.title("Interactive Bedtime Storyteller")
 
 if "phase" not in st.session_state:
     st.session_state.phase = "init"
@@ -216,11 +216,11 @@ if st.session_state.phase == "init":
 elif st.session_state.phase in ["executing", "finished"]:
     # Display Story Plan in sidebar
     with st.sidebar:
-        st.header("📖 Story Plan")
+        st.header("Story Plan")
         state = st.session_state.story_state
         for i, s in enumerate(state.plan.scenes):
             if i == state.current_scene_index:
-                st.markdown(f"**👉 Scene {i+1}: {s.title}**")
+                st.markdown(f"**Scene {i+1} (Current): {s.title}**")
             else:
                 st.markdown(f"**Scene {i+1}: {s.title}**")
             st.caption(s.description)

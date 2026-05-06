@@ -4,76 +4,64 @@ This diagram illustrates the multi-agent architecture and the flow of structured
 
 ```mermaid
 flowchart TD
-    %% Styling Definitions
-    classDef user fill:#f9f,stroke:#333,stroke-width:2px,color:#000
-    classDef agent fill:#e1f5fe,stroke:#1565c0,stroke-width:2px,color:#000
-    classDef engine fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
-    classDef safety fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef output fill:#f3e5f5,stroke:#388e3c,stroke-width:2px,color:#000
+    %% Professional neutral styling
+    classDef user fill:#f5f5f5,stroke:#555,stroke-width:1.5px,color:#111
+    classDef process fill:#eef3f8,stroke:#2f5d8a,stroke-width:1.5px,color:#111
+    classDef control fill:#f8f3e8,stroke:#8a6d2f,stroke-width:1.5px,color:#111
+    classDef output fill:#edf7ed,stroke:#2f7a3d,stroke-width:1.5px,color:#111
+    classDef note fill:#ffffff,stroke:#999,stroke-width:1px,color:#333
 
-    %% User Input
-    User(["👤 User"]):::user
+    User[User Request]:::user
 
-    %% Phase 1: Planning & Setup
-    subgraph Planning["Phase 1: Planning & Setup"]
-        Extractor["🔍 Extractor Agent<br/><small>Pydantic: Extraction</small>"]:::agent
-        Planner["🗺️ Planner Agent<br/><small>Pydantic: StoryPlan</small>"]:::agent
-        PlanReviewer["🛡️ Reviewer Agent<br/><small>Pydantic: ReviewResult</small>"]:::safety
+    subgraph P1[Phase 1: Extraction and Planning]
+        Extractor[Extractor Agent\nExtraction]
+        Planner[Planner Agent\nStoryPlan]
+        Reviewer[Reviewer Agent\nReviewResult]
     end
 
-    %% Phase 2: Execution & Interactive Loop
-    subgraph Execution["Phase 2: Execution & Generation (Interactive Loop)"]
-        Director["🎬 ActionDecider Agent<br/><small>Pydantic: ActionDecision</small>"]:::engine
-        Storyteller["📖 Storyteller Agent<br/><small>Pydantic: StorytellerOutput</small>"]:::agent
-        CharacterAgents["🎭 Character Agents<br/><small>(Dynamic Generation)</small>"]:::agent
-        Judge["⚖️ Judge Agent<br/><small>Pydantic: Judgment</small>"]:::safety
+    subgraph P2[Phase 2: Scene Execution]
+        Director[ActionDecider Agent\nActionDecision]:::control
+        Storyteller[Storyteller Agent\nStorytellerOutput]:::process
+        Characters[Character Agents\nDynamic Cast]:::process
+        Judge[Judge Agent\nJudgment]:::control
     end
 
-    %% Phase 3: Feedback
-    subgraph Feedback["Phase 3: Live Feedback"]
-        FeedbackClassifier["🧠 FeedbackClassifier Agent<br/><small>Pydantic: FeedbackClassification</small>"]:::agent
+    subgraph P3[Phase 3: User Feedback Handling]
+        Feedback[FeedbackClassifier Agent\nFeedbackClassification]
     end
 
-    FinalStory(["📚 Final Story UI"]):::output
+    Output[Story Output]:::output
+    RetryPlan[Plan retries handled internally\nuntil approved or retry limit]:::note
+    RetryJudge[Content retries handled internally\nuntil approved or retry limit]:::note
 
-    %% Edges - Initial Flow
-    User -->|1. Initial Story Prompt| Extractor
-    Extractor -->|2. Theme & Characters| Planner
-    Planner -->|3. Hero's Journey Arc| PlanReviewer
-    
-    %% Edges - Review Loop
-    PlanReviewer -.->|Rejected Plan Retry| Planner
-    PlanReviewer -->|4. Approved Plan| Director
+    User -->|1. Prompt| Extractor
+    Extractor -->|2. Elements| Planner
+    Planner -->|3. Candidate Plan| Reviewer
+    Reviewer -->|4. Approved Plan| Director
+    Reviewer -.-> RetryPlan
 
-    %% Edges - Execution Loop
-    Director -->|5. Chooses Next Actor| Storyteller
-    Director -->|5. Chooses Next Actor| CharacterAgents
-    
+    Director -->|5. Select Next Actor| Storyteller
+    Director -->|5. Select Next Actor| Characters
     Storyteller -->|6. Narrative Block| Judge
-    CharacterAgents -->|6. Dialogue/Action| Judge
+    Characters -->|6. Character Block| Judge
+    Judge -->|7. Approved Content| Output
+    Judge -.-> RetryJudge
 
-    %% Edges - Judge Loop
-    Judge -.->|Rejected Content Retry| Storyteller
-    Judge -.->|Rejected Content Retry| CharacterAgents
-    
-    %% Edges - Output & Feedback
-    Judge -->|7. Approved Content| FinalStory
-    FinalStory --> User
-    
-    User -.->|8. Live Feedback| FeedbackClassifier
-    FeedbackClassifier -.->|Scene Adjustment| Director
-    FeedbackClassifier -.->|Plan Change| Planner
+    Output -->|8. Display| User
+    User -->|9. Feedback| Feedback
+    Feedback -->|Scene Adjustment| Director
+    Feedback -->|Plan Change| Planner
 ```
 
 ## Agent Roles & Data Structures
 
 All interactions are strictly typed using **Pydantic** to guarantee structural reliability when parsed by the OpenAI Responses API.
 
-*   **🔍 Extractor Agent:** Analyzes the user's initial prompt and extracts elements into an `Extraction` model containing a strict Enum for the theme, detailed character descriptions, and relationships.
-*   **🗺️ Planner Agent:** Adopts a specific author persona (e.g., Dan Brown, J.K. Rowling) based on the theme to generate a 9-scene Hero's Journey arc, returning a `StoryPlan`.
-*   **🛡️ Reviewer Agent:** A safety gatekeeper that evaluates the `StoryPlan` for 5-10-year-old age appropriateness (e.g., converting violent threats to safe scares). Returns a `ReviewResult`.
-*   **🎬 ActionDecider (Director) Agent:** Evaluates the ongoing story context and determines which entity (the Storyteller or a specific Character) should speak next. Returns an `ActionDecision`.
-*   **📖 Storyteller Agent:** Acts as the narrator. Outputs a `StorytellerOutput` containing both the prose (`narrative_block`) and a hidden prompt instructing the next character (`prompt_for_next_actor`).
-*   **🎭 Character Agents:** Independent agents initialized with the extracted personas. They generate seamless third-person prose matching their character description.
-*   **⚖️ Judge Agent:** A continuous quality control filter. Evaluates every piece of prose for safety, engagement, and alignment, returning a `Judgment`.
-*   **🧠 FeedbackClassifier Agent:** Evaluates mid-story user input, classifying it as a localized "scene adjustment" or a major "plan change" via the `FeedbackClassification` model.
+*   **Extractor Agent:** Analyzes the user's initial prompt and extracts elements into an `Extraction` model containing a strict Enum for the theme, detailed character descriptions, and relationships.
+*   **Planner Agent:** Adopts a specific author persona (e.g., Dan Brown, J.K. Rowling) based on the theme to generate a 9-scene Hero's Journey arc, returning a `StoryPlan`.
+*   **Reviewer Agent:** A safety gatekeeper that evaluates the `StoryPlan` for 5-10-year-old age appropriateness (e.g., converting violent threats to safe scares). Returns a `ReviewResult`.
+*   **ActionDecider (Director) Agent:** Evaluates the ongoing story context and determines which entity (the Storyteller or a specific Character) should speak next. Returns an `ActionDecision`.
+*   **Storyteller Agent:** Acts as the narrator. Outputs a `StorytellerOutput` containing both the prose (`narrative_block`) and a hidden prompt instructing the next character (`prompt_for_next_actor`).
+*   **Character Agents:** Independent agents initialized with the extracted personas. They generate seamless third-person prose matching their character description.
+*   **Judge Agent:** A continuous quality control filter. Evaluates every piece of prose for safety, engagement, and alignment, returning a `Judgment`.
+*   **FeedbackClassifier Agent:** Evaluates mid-story user input, classifying it as a localized "scene adjustment" or a major "plan change" via the `FeedbackClassification` model.
